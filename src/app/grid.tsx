@@ -1,5 +1,6 @@
-'use client'
-import { useMemo, useState, useCallback, use } from 'react';
+'use client';
+import { useMemo, useState, useCallback } from 'react';
+import { playMidi, ensureAudio } from './lib/audio';
 
 // Grid dimensions
 const COLS = 16; // Steps (time)
@@ -35,6 +36,22 @@ export default function Grid() {
   // Render highest pitch on top
   const rows = useMemo(() => [...Array(ROWS).keys()].reverse(), []);
 
+  // Handle piano label click: preview sound
+  const onLabelClick = async (row: number) => {
+    // Preview sound
+    await ensureAudio();
+    playMidi(PITCHES[row], '16n', 0.9);
+  }
+
+  // Handle cell click: play sound and toggle state
+  const onCellClick = async (row: number, col: number) => {
+    // Preview sound
+    await ensureAudio();
+    playMidi(PITCHES[row], '16n', 0.9);
+    // Toggle UI state
+    toggleCell(row, col);
+  }
+
   return (
     <main className="p-4 max-w-5xl mx-auto">
 
@@ -46,6 +63,7 @@ export default function Grid() {
             <div
               key={`label-${row}`}
               className="h-8 w-16 flex items-center justify-end pr-2 text-xs text-gray-600 select-none"
+              onMouseDown={() => onLabelClick(row)}
             >
               {noteNames[row]}
             </div>
@@ -70,7 +88,7 @@ export default function Grid() {
               return (
                 <button
                   key={key}
-                  onClick={() => toggleCell(row, col)}
+                  onClick={() => onCellClick(row, col)}
                   className={[
                     'h-8 w-8',
                     'focus:outline-none',
