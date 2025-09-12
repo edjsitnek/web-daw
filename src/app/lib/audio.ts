@@ -1,25 +1,28 @@
+'use client';
 import * as Tone from 'tone';
 
-// Ensure audio context is started only once
 let started = false;
-let synth: Tone.Synth | null = null;
+let synth: Tone.PolySynth | null = null;
 
+// Ensure AudioContext is started and synth is created
 export async function ensureAudio() {
   if (!started) {
     await Tone.start();
     started = true;
-
-    // Create synth after Tone is started
-    synth = new Tone.Synth({
-      envelope: { attack: 0.005, decay: 0.1, sustain: 0.5, release: 0.5 }
-    }).toDestination();
   }
+  if (!synth) synth = new Tone.PolySynth(Tone.Synth).toDestination();
 }
 
-// Play a MIDI note number (e.g. 60 = C4) for a given duration and velocity
-export function playMidi(midi: number, dur: string = '16n', vel: number = 0.9) {
+// For immediate playback outside of scheduled callbacks (preview notes)
+export function playMidiNow(midi: number, dur: string = '16n', vel = 0.9) {
   if (!synth) return;
-
-  const note = Tone.Frequency(midi, "midi").toNote();
+  const note = Tone.Frequency(midi, 'midi').toNote();
   synth.triggerAttackRelease(note, dur, undefined, vel);
+}
+
+// For scheduled callbacks to keep tight timing
+export function playMidiAt(midi: number, dur: string, time: number, vel = 0.9) {
+  if (!synth) return;
+  const note = Tone.Frequency(midi, 'midi').toNote();
+  synth.triggerAttackRelease(note, dur, time, vel);
 }

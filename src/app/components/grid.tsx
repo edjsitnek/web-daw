@@ -1,27 +1,13 @@
 'use client';
-import { useMemo, useState, useCallback } from 'react';
-import { playMidi, ensureAudio } from '../lib/audio';
+import { useMemo } from 'react';
+import { playMidiNow, ensureAudio } from '../lib/audio';
 import { CellKey } from '../lib/types';
-import { DEFAULT_COLS as COLS, DEFAULT_ROWS as ROWS, MIDI_C4 } from '../lib/config';
+import { DEFAULT_COLS as COLS, DEFAULT_ROWS as ROWS, PITCHES } from '../lib/config';
+import { useProjectStore } from '../store/project';
 
-
-// Choose pitch range (MIDI). Here: C4..B4 (12 semitones)
-const PITCHES = Array.from({ length: ROWS }, (_, i) => MIDI_C4 + i); // ascending
-// Reverse rows when rendering for highest pitch on top
-
+// Main grid component with piano labels and interactive note cells
 export default function Grid() {
-  // Active cells - notes toggled on the grid (later convert to Note objects)
-  const [active, setActive] = useState<Set<CellKey>>(new Set());
-
-  const toggleCell = useCallback((row: number, col: number) => {
-    setActive(prev => {
-      const next = new Set(prev);
-      const key = `${row}:${col}` as CellKey;
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-  }, []);
+  const { active, toggleCell } = useProjectStore();
 
   // For labels on the piano side
   const noteNames = useMemo(() => {
@@ -36,14 +22,14 @@ export default function Grid() {
   const onLabelClick = async (row: number) => {
     // Preview sound
     await ensureAudio();
-    playMidi(PITCHES[row], '16n', 0.9);
+    playMidiNow(PITCHES[row], '16n', 0.9);
   }
 
   // Handle cell click: play sound and toggle state
   const onCellClick = async (row: number, col: number) => {
     // Preview sound
     await ensureAudio();
-    playMidi(PITCHES[row], '16n', 0.9);
+    playMidiNow(PITCHES[row], '16n', 0.9);
     // Toggle UI state
     toggleCell(row, col);
   }

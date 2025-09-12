@@ -1,17 +1,23 @@
+'use client';
+
 import Image from 'next/image';
-import { useState } from 'react';
 
-export default function Toolbar() {
-  const [isPlaying, setIsPlaying] = useState(false);
+export interface ToolbarProps {
+  isPlaying: boolean;
+  onPlay: () => Promise<void>;
+  onPause: () => void;
+  onStop: () => void;
+}
 
+// Toolbar component with play, pause, and stop buttons
+export default function Toolbar({ isPlaying, onPlay, onPause, onStop }: ToolbarProps) {
   return (
     <div className="flex gap-1">
-      {/* Toolbar with play, pause, stop buttons */}
       {!isPlaying ? (
         <button
           className="text-white bg-gray-700 hover:bg-gray-800 rounded-xl p-2.5"
           aria-label="Play button"
-          onClick={() => setIsPlaying(!isPlaying)}
+          onClick={onPlay}
         >
           <Image
             src="/svgs/play-svgrepo-com.svg"
@@ -24,7 +30,7 @@ export default function Toolbar() {
         <button
           className="text-white bg-gray-700 hover:bg-gray-800 rounded-xl p-2.5"
           aria-label="Pause button"
-          onClick={() => setIsPlaying(!isPlaying)}
+          onClick={onPause}
         >
           <Image
             src="/svgs/pauze-svgrepo-com.svg"
@@ -37,6 +43,7 @@ export default function Toolbar() {
       <button
         className="text-white bg-gray-700 hover:bg-gray-800 rounded-xl p-2.5"
         aria-label="Stop button"
+        onClick={onStop}
       >
         <Image
           src="/svgs/stop-svgrepo-com.svg"

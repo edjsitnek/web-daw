@@ -1,13 +1,13 @@
 'use client';
 import Grid from './components/grid';
-import Toolbar from './components/toolbar';
+import TransportBar from './components/transport-bar';
 
 export default function Home() {
 
   return (
     <div className="p-2">
       <h1>Web Daw</h1>
-      <Toolbar />
+      <TransportBar />
       <Grid />
     </div>
   );
