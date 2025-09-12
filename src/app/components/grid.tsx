@@ -1,17 +1,13 @@
 'use client';
 import { useMemo, useState, useCallback } from 'react';
-import { playMidi, ensureAudio } from './lib/audio';
+import { playMidi, ensureAudio } from '../lib/audio';
+import { CellKey } from '../lib/types';
+import { DEFAULT_COLS as COLS, DEFAULT_ROWS as ROWS, MIDI_C4 } from '../lib/config';
 
-// Grid dimensions
-const COLS = 16; // Steps (time)
-const ROWS = 12; // Notes (pitch)
 
 // Choose pitch range (MIDI). Here: C4..B4 (12 semitones)
-const MIDI_C4 = 60;
 const PITCHES = Array.from({ length: ROWS }, (_, i) => MIDI_C4 + i); // ascending
 // Reverse rows when rendering for highest pitch on top
-
-type CellKey = `${number}:${number}`; // "row:col"
 
 export default function Grid() {
   // Active cells - notes toggled on the grid (later convert to Note objects)
@@ -90,10 +86,7 @@ export default function Grid() {
                   key={key}
                   onClick={() => onCellClick(row, col)}
                   className={[
-                    'h-8 w-8',
-                    'focus:outline-none',
-                    'transition-[background-color,box-shadow] duration-75',
-                    'border border-gray-200/70',
+                    'h-8 w-8 focus:outline-none transition-[background-color,box-shadow] duration-75 border border-gray-200/70',
                     isBeatBoundary ? 'border-l-gray-400' : '',
                     on
                       ? 'bg-blue-500 shadow-inner'
