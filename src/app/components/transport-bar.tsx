@@ -6,7 +6,7 @@ import Toolbar from './toolbar';
 import { CellKey } from '../lib/types';
 import { DEFAULT_COLS as COLS, PITCHES } from '../lib/config';
 import { ensureAudio, playMidiAt } from '../lib/audio';
-import { playKick, playSnare, playHat } from '../lib/drums';
+import { ensureDrums, playKick, playSnare, playHat } from '../lib/drums';
 import { useProjectStore } from '../store/project';
 import { useTransportStore } from '../store/transport';
 
@@ -38,6 +38,8 @@ export default function TransportBar() {
   // Start playback
   const handlePlay = useCallback(async () => {
     await ensureAudio();
+    await ensureDrums();
+
     // Keep tempo in sync
     transport.bpm.rampTo(bpm, 0.05);
 
