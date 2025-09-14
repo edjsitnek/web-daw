@@ -6,6 +6,7 @@ import Toolbar from './toolbar';
 import { CellKey } from '../lib/types';
 import { DEFAULT_COLS as COLS, PITCHES } from '../lib/config';
 import { ensureAudio, playMidiAt } from '../lib/audio';
+import { playKick, playSnare, playHat } from '../lib/drums';
 import { useProjectStore } from '../store/project';
 import { useTransportStore } from '../store/transport';
 
@@ -24,9 +25,13 @@ export default function TransportBar() {
     // For each row, if the cell at (row, next) is active, play its note
     PITCHES.forEach((midi, row) => {
       const key = `${row}:${next}` as CellKey;
-      if (active.has(key)) {
-        playMidiAt(midi, '16n', time, 0.9); // play note at the scheduled time
-      }
+      if (!active.has(key)) return;
+      // temp: use lowest 3 rows as a drum lane demo
+      if (row === 0) { playKick(time); return; }
+      if (row === 1) { playSnare(time); return; }
+      if (row === 2) { playHat(time); return; }
+      playMidiAt(midi, '16n', time, 0.9); // play note at the scheduled time
+
     });
   }, [setStep]);
 
