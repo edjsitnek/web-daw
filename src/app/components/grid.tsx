@@ -4,10 +4,14 @@ import { playMidiNow, ensureAudio } from '../lib/audio';
 import { CellKey } from '../lib/types';
 import { DEFAULT_COLS as COLS, DEFAULT_ROWS as ROWS, PITCHES } from '../lib/config';
 import { useProjectStore } from '../store/project';
+import { ensureDrums, playKick, playSnare, playHat } from '../lib/drums';
 
 // Main grid component with piano labels and interactive note cells
 export default function Grid() {
-  const { active, toggleCell } = useProjectStore();
+  const { instruments, instrumentOrder, selectedInstrumentId, selectInstrument, toggleCell } = useProjectStore();
+
+  const inst = instruments[selectedInstrumentId];
+  const cells = inst?.cells ?? new Set<CellKey>();
 
   // For labels on the piano side
   const noteNames = useMemo(() => {
@@ -18,24 +22,44 @@ export default function Grid() {
   // Render highest pitch on top
   const rows = useMemo(() => [...Array(ROWS).keys()].reverse(), []);
 
-  // Handle piano label click: preview sound
-  const onLabelClick = async (row: number) => {
-    // Preview sound
+  // Preview sound for a given row
+  const preview = async (row: number) => {
     await ensureAudio();
-    playMidiNow(PITCHES[row], '16n', 0.9);
+    if (!inst) return;
+    if (inst.kind === 'drum') {
+      await ensureDrums();
+      if (inst.voice === 'kick') playKick();
+      else if (inst.voice === 'snare') playSnare();
+      else if (inst.voice === 'hat') playHat();
+    } else {
+      playMidiNow(PITCHES[row], '16n', 0.9);
+    }
   }
+
+  // Handle piano label click: preview sound
+  const onLabelClick = (row: number) => { preview(row); }
 
   // Handle cell click: play sound and toggle state
   const onCellClick = async (row: number, col: number) => {
     // Preview sound
-    await ensureAudio();
-    playMidiNow(PITCHES[row], '16n', 0.9);
+    await preview(row);
     // Toggle UI state
     toggleCell(row, col);
   }
 
   return (
     <main className="p-4 max-w-5xl mx-auto">
+      {/* Instrument selector */}
+      <div className="mb-2">
+        <label className="text-sm mr-2">Instrument</label>
+        <select className="border rounded px-2 py-1" value={selectedInstrumentId} onChange={e => selectInstrument(e.target.value)}>
+          {instrumentOrder.map((id: string) => (
+            <option key={id} value={id} className="text-gray-900">
+              {instruments[id].name}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {/* Grid wrapper: piano labels (left) + grid (right) */}
       <div className="flex gap-2">
@@ -62,10 +86,8 @@ export default function Grid() {
           {rows.map((row) =>
             Array.from({ length: COLS }, (_, col) => {
               const key = `${row}:${col}` as CellKey;
-              const on = active.has(key);
-
-              // Vertical stripes to visually group beats (every 4 steps)
-              const isBeatBoundary = col % 4 === 0;
+              const on = cells.has(key);
+              const isBeatBoundary = col % 4 === 0; // Vertical stripes to visually group beats (every 4 steps)
 
               return (
                 <button

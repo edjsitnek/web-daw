@@ -20,34 +20,40 @@ export default function TransportBar() {
   const tick = useCallback((time: number) => {
     const next = (useTransportStore.getState().step + 1) % COLS;
     setStep(next);
-    // Get current active cells from project store
-    const active = useProjectStore.getState().active;
-    // For each row, if the cell at (row, next) is active, play its note
-    PITCHES.forEach((midi, row) => {
-      const key = `${row}:${next}` as CellKey;
-      if (!active.has(key)) return;
-      // temp: use lowest 3 rows as a drum lane demo
-      if (row === 0) { playKick(time); return; }
-      if (row === 1) { playSnare(time); return; }
-      if (row === 2) { playHat(time); return; }
-      playMidiAt(midi, '16n', time, 0.9); // play note at the scheduled time
 
-    });
+    const { instruments, instrumentOrder } = useProjectStore.getState();
+
+    // For each instrument, if a cell is active at (row, next), play it
+    for (const id of instrumentOrder) {
+      const inst = instruments[id];
+      if (!inst || inst.muted) continue;
+
+      // For each row in this instrument, if the cell at (row, next) is active, play its note
+      PITCHES.forEach((midi, row) => {
+        const key = `${row}:${next}` as CellKey;
+        if (!inst.cells.has(key)) return;
+
+        if (inst.kind === 'synth') {
+          playMidiAt(midi, '16n', time, 0.9);
+        } else {
+          if (inst.voice === 'kick') playKick(time);
+          if (inst.voice === 'snare') playSnare(time);
+          if (inst.voice === 'hat') playHat(time);
+        }
+      });
+    }
   }, [setStep]);
 
   // Start playback
   const handlePlay = useCallback(async () => {
     await ensureAudio();
     await ensureDrums();
-
-    // Keep tempo in sync
-    transport.bpm.rampTo(bpm, 0.05);
+    transport.bpm.rampTo(bpm, 0.05); // smooth transition to new bpm over 50ms
 
     // Avoid double-scheduling if play is clicked multiple times
     if (repeatIdRef.current === undefined) {
       repeatIdRef.current = transport.scheduleRepeat(tick, '16n');
     }
-
     transport.start() // start immediately
     setIsPlaying(true);
   }, [bpm, tick]);

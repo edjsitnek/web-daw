@@ -1,8 +1,23 @@
 export type CellKey = `${number}:${number}`; // "row:col"
+export type InstrumentKind = 'synth' | 'drum';
+export type DrumVoice = 'kick' | 'snare' | 'hat';
 
-export type Note = {
-  pitch: number; // MIDI pitch (e.g., 60 = middle C)
-  startStep: number; // Start step (0..COLS-1)
-  durationSteps: number; // Duration in steps
-  velocity: number; // Velocity (0.0 to 1.0)
+export interface BaseInstrument {
+  id: string;
+  name: string;
+  kind: InstrumentKind;
+  cells: Set<CellKey>;
+  muted: boolean;
+  color?: string;
 }
+
+export interface SynthInstrument extends BaseInstrument {
+  kind: 'synth';
+}
+
+export interface DrumInstrument extends BaseInstrument {
+  kind: 'drum';
+  voice: DrumVoice;
+}
+
+export type Instrument = SynthInstrument | DrumInstrument;
