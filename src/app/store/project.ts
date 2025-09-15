@@ -17,20 +17,25 @@ type ProjectState = {
   removeInstrument: (id: string) => void; // Remove the selected instrument
 };
 
+const synthId = 'i_synth1';
+const kickId = 'i_kick1';
+const snareId = 'i_snare1';
+const hatId = 'i_hat1';
+
 function uid() { return Math.random().toString(36).slice(2, 8); }
 
 // Zustand store for project state
 export const useProjectStore = create<ProjectState>((set, get) => {
   // Seeding initial instruments
   const synth: SynthInstrument = {
-    id: `i_${uid()}`,
+    id: synthId,
     name: 'Synth 1',
     kind: 'synth',
     cells: new Set<CellKey>(),
     muted: false,
   };
   const kick: DrumInstrument = {
-    id: `i_${uid()}`,
+    id: kickId,
     name: 'Kick',
     kind: 'drum',
     voice: 'kick',
@@ -38,7 +43,7 @@ export const useProjectStore = create<ProjectState>((set, get) => {
     muted: false,
   };
   const snare: DrumInstrument = {
-    id: `i_${uid()}`,
+    id: snareId,
     name: 'Snare',
     kind: 'drum',
     voice: 'snare',
@@ -46,7 +51,7 @@ export const useProjectStore = create<ProjectState>((set, get) => {
     muted: false,
   };
   const hat: DrumInstrument = {
-    id: `i_${uid()}`,
+    id: hatId,
     name: 'Hat',
     kind: 'drum',
     voice: 'hat',
@@ -66,22 +71,35 @@ export const useProjectStore = create<ProjectState>((set, get) => {
     instruments,
     instrumentOrder: [synth.id, kick.id, snare.id, hat.id],
     selectedInstrumentId: synth.id,
-    selectInstrument: (id) => set({ selectedInstrumentId: id }),
+    selectInstrument: (id) =>
+      set((s) => {
+        if (s.instruments[id]) return { selectedInstrumentId: id };
+        // fallback to the first valid instrument instead of adopting a bad id
+        const fallback = s.instrumentOrder.find((x) => !!s.instruments[x]);
+        return fallback ? { selectedInstrumentId: fallback } : s;
+      }),
 
     toggleCell: (row, col) => {
-      const { selectedInstrumentId, instruments } = get();
-      const inst = instruments[selectedInstrumentId]
-      if (!inst) return;
+      set((s) => {
+        const inst = s.instruments[s.selectedInstrumentId];
+        if (!inst) {
+          // auto-heal selection if it's point at something that no longer exists
+          const fallback = s.instrumentOrder.find((x) => !!s.instruments[x]);
+          if (fallback && fallback !== s.selectedInstrumentId) {
+            return { selectedInstrumentId: fallback };
+          }
+          return s;
+        }
+        const key = `${row}:${col}` as CellKey;
+        const next = new Set(inst.cells);
+        next.has(key) ? next.delete(key) : next.add(key);
 
-      const key = `${row}:${col}` as CellKey;
-      const next = new Set(inst.cells); // immutable update
-      next.has(key) ? next.delete(key) : next.add(key);
-
-      set({
-        instruments: {
-          ...instruments,
-          [inst.id]: { ...inst, cells: next }, // 
-        },
+        return {
+          instruments: {
+            ...s.instruments,
+            [inst.id]: { ...inst, cells: next },
+          },
+        };
       });
     },
 
