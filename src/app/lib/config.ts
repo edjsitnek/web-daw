@@ -1,5 +1,8 @@
+export const MIDI_MIN = 21; // A0
+export const MIDI_MAX = 108; // C8
 export const DEFAULT_COLS = 16;
-export const DEFAULT_ROWS = 12;
-export const MIDI_C4 = 60; // Middle C
-// Choose pitch range (MIDI). Here: C4..B4 (12 semitones)
-export const PITCHES = Array.from({ length: DEFAULT_ROWS }, (_, i) => MIDI_C4 + i); // ascending
+
+// 88-key range, ascending
+export const PITCHES = Array.from({ length: MIDI_MAX - MIDI_MIN + 1 }, (_, i) => MIDI_MIN + i);
+
+export const DEFAULT_ROWS = PITCHES.length;

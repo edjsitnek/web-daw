@@ -80,7 +80,7 @@ export const useProjectStore = create<ProjectState>((set, get) => {
       }),
 
     toggleCell: (row, col) => {
-      set((s) => {
+      set((s: ProjectState) => {
         const inst = s.instruments[s.selectedInstrumentId];
         if (!inst) {
           // auto-heal selection if it's point at something that no longer exists
