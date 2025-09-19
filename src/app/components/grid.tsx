@@ -79,7 +79,7 @@ export default function Grid() {
   }
 
   return (
-    <main className="p-4 max-w-5xl mx-auto">
+    <main className="p-4 mx-6 max-w-5xl">
       {/* Instrument selector */}
       <div className="mb-2">
         <label className="text-sm mr-2">Instrument</label>

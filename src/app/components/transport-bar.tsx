@@ -22,11 +22,16 @@ export default function TransportBar() {
     setStep(next);
 
     const { instruments, instrumentOrder } = useProjectStore.getState();
+    const anySolo = instrumentOrder.some((id) => instruments[id]?.solo);
 
     // For each instrument, if a cell is active at (row, next), play it
     for (const id of instrumentOrder) {
       const inst = instruments[id];
       if (!inst || inst.muted) continue;
+
+      // Silence (mute/solo) check
+      const isSilenced = anySolo ? !inst.solo : !!inst.muted;
+      if (isSilenced) continue;
 
       // For each row in this instrument, if the cell at (row, next) is active, play its note
       PITCHES.forEach((midi, row) => {

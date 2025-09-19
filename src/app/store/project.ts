@@ -12,9 +12,12 @@ type ProjectState = {
   // Actions
   selectInstrument: (id: string) => void; // Select instrument by id
   toggleCell: (row: number, col: number) => void; // Toggle cell state
+  toggleCellFor: (instrumentId: string, row: number, col: number) => void; // Toggle cell state on instrument rack
   addSynth: () => void; // Add a new synth instrument
   addDrum: (voice: DrumVoice, name?: string) => void; // Add a new drum instrument
   removeInstrument: (id: string) => void; // Remove the selected instrument
+  toggleMute: (id: string) => void; // Toggle the mute modifier
+  toggleSolo: (id: string) => void; // Toggle the solo modifier
 };
 
 const synthId = 'i_synth1';
@@ -103,6 +106,21 @@ export const useProjectStore = create<ProjectState>((set, get) => {
       });
     },
 
+    toggleCellFor: (instrumentId: string, row: number, col: number) =>
+      set((state) => {
+        const inst = state.instruments[instrumentId];
+        if (!inst) return state;
+        const key: `${number}:${number}` = `${row}:${col}`;
+        const next = new Set(inst.cells);
+        next.has(key) ? next.delete(key) : next.add(key);
+        return {
+          instruments: {
+            ...state.instruments,
+            [instrumentId]: { ...inst, cells: next }
+          }
+        };
+      }),
+
     addSynth: (name = 'Synth') => {
       const id = `i_${uid()}`;
       const inst: SynthInstrument = { id, name, kind: 'synth', cells: new Set(), muted: false };
@@ -140,5 +158,31 @@ export const useProjectStore = create<ProjectState>((set, get) => {
         };
       });
     },
-  }
+
+    toggleMute: (id: string) => {
+      set((state) => {
+        const inst = state.instruments[id];
+        if (!inst) return state;
+        return {
+          instruments: {
+            ...state.instruments,
+            [id]: { ...inst, muted: !inst.muted }
+          }
+        };
+      })
+    },
+
+    toggleSolo: (id: string) => {
+      set((state) => {
+        const inst = state.instruments[id];
+        if (!inst) return state;
+        return {
+          instruments: {
+            ...state.instruments,
+            [id]: { ...inst, solo: !inst.solo }
+          }
+        };
+      })
+    },
+  };
 });

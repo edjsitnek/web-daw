@@ -7,7 +7,8 @@ export interface BaseInstrument {
   name: string;
   kind: InstrumentKind;
   cells: Set<CellKey>;
-  muted: boolean;
+  muted?: boolean;
+  solo?: boolean;
   color?: string;
 }
 
