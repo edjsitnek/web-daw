@@ -174,14 +174,23 @@ export const useProjectStore = create<ProjectState>((set, get) => {
 
     toggleSolo: (id: string) => {
       set((state) => {
-        const inst = state.instruments[id];
-        if (!inst) return state;
-        return {
-          instruments: {
-            ...state.instruments,
-            [id]: { ...inst, solo: !inst.solo }
+        const current = state.instruments[id];
+        if (!current) return state;
+
+        const nextSolo = !current.solo; // tapping it toggles
+        const updated: typeof state.instruments = { ...state.instruments };
+
+        for (const otherId of state.instrumentOrder) {
+          const inst = updated[otherId];
+          if (!inst) continue;
+          updated[otherId] = {
+            ...inst,
+            // if turning one on, all others off; if turning that one off, all off
+            solo: nextSolo && otherId === id,
           }
-        };
+        }
+
+        return { instruments: updated };
       })
     },
   };
