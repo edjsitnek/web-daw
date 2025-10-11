@@ -17,10 +17,7 @@ export default function TransportBar() {
   const transport = Tone.getTransport();
 
   // Advance one col and play notes in that col
-  const tick = useCallback((time: number) => {
-    const next = (useTransportStore.getState().step + 1) % COLS;
-    setStep(next);
-
+  const playColumnAt = (col: number, time: number) => {
     const { instruments, instrumentOrder } = useProjectStore.getState();
     const anySolo = instrumentOrder.some((id) => instruments[id]?.solo);
 
@@ -35,7 +32,7 @@ export default function TransportBar() {
 
       // For each row in this instrument, if the cell at (row, next) is active, play its note
       PITCHES.forEach((midi, row) => {
-        const key = `${row}:${next}` as CellKey;
+        const key = `${row}:${col}` as CellKey;
         if (!inst.cells.has(key)) return;
 
         if (inst.kind === 'synth') {
@@ -47,6 +44,15 @@ export default function TransportBar() {
         }
       });
     }
+  };
+
+  const tick = useCallback((time: number) => {
+    const current = useTransportStore.getState().step;
+    // Play the current column
+    playColumnAt(current, time);
+    // Advance step, looping back to 0
+    const next = (current + 1) % COLS;
+    setStep(next);
   }, [setStep]);
 
   // Start playback
