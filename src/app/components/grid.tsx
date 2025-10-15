@@ -49,6 +49,18 @@ export default function Grid() {
   // Render highest pitch on top
   const rows = useMemo(() => [...Array(ROWS).keys()].reverse(), []);
 
+  // Collect all cells from other instruments for ghost note rendering
+  const ghostCells = useMemo(() => {
+    const set = new Set<CellKey>();
+    for (const id of instrumentOrder) {
+      if (id === selectedInstrumentId) continue; // exclude current instrument
+      const inst = instruments[id];
+      if (!inst) continue;
+      for (const key of inst.cells) set.add(key); // add all other instrument cells
+    }
+    return set;
+  }, [instruments, instrumentOrder, selectedInstrumentId]);
+
   // Preview sound for a given row
   const preview = async (row: number) => {
     await ensureAudio();
@@ -123,17 +135,20 @@ export default function Grid() {
                 const key = `${row}:${col}` as CellKey;
                 const on = cells.has(key);
                 const isBeatBoundary = col % 4 === 0; // Vertical stripes to visually group beats (every 4 steps)
+                const ghost = !on && ghostCells.has(key); // Ghost note only if not active on this instrument
 
                 return (
                   <button
                     key={key}
                     onClick={() => onCellClick(row, col)}
                     data-active={on ? "true" : "false"}
+                    data-ghost={ghost ? "true" : "false"}
                     className={[
                       "h-8 w-8 focus:outline-none transition-[background-color,box-shadow] duration-75 border border-gray-200/70",
                       isBeatBoundary ? "border-l-gray-400" : "",
                       isBlackKey(PITCHES[row]) ? "bg-neutral-100" : "bg-white",
-                      "data-[active=true]:bg-blue-500 data-[active=true]:shadow-inner hover:bg-blue-50 active:bg-blue-100"
+                      "data-[active=true]:bg-blue-500 data-[active=true]:shadow-inner hover:bg-blue-50 active:bg-blue-100",
+                      "data-[ghost=true]:bg-gray-100/50 hover:data-[ghost=true]:bg-gray-300/70",
                     ].join(" ")}
                     title={`${noteNames[row]} @ step ${col + 1}`}
                     aria-pressed={on}
