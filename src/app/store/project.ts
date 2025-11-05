@@ -1,23 +1,30 @@
 'use client';
 console.log('project store loaded');
 import { create } from 'zustand';
-import type { Instrument, SynthInstrument, DrumInstrument, DrumVoice, CellKey } from '../lib/types';
+import type { Instrument, SynthInstrument, DrumInstrument, DrumVoice, CellKey, PatternId, PatternInfo, InstrumentId, InstrumentGrid, PatternGrids } from '../lib/types';
 
 // Define the shape of the project state
 type ProjectState = {
-  instruments: Record<string, Instrument>; // All instruments by id
-  instrumentOrder: string[]; // Order of instruments for UI
-  selectedInstrumentId: string; // Currently selected instrument
+  instruments: Record<InstrumentId, Instrument>; // All instruments by id
+  instrumentOrder: InstrumentId[]; // Order of instruments for UI
+  selectedInstrumentId: InstrumentId; // Currently selected instrument
+  patterns: PatternInfo[]; // List of patterns
+  currentPatternId: PatternId; // Currently active pattern
+  patternGrids: PatternGrids; // Note data per pattern
 
   // Actions
   selectInstrument: (id: string) => void; // Select instrument by id
-  toggleCell: (row: number, col: number) => void; // Toggle cell state
-  toggleCellFor: (instrumentId: string, row: number, col: number) => void; // Toggle cell state on instrument rack
   addSynth: () => void; // Add a new synth instrument
   addDrum: (voice: DrumVoice, name?: string) => void; // Add a new drum instrument
   removeInstrument: (id: string) => void; // Remove the selected instrument
   toggleMute: (id: string) => void; // Toggle the mute modifier
   toggleSolo: (id: string) => void; // Toggle the solo modifier
+  addPattern: (name?: string) => void; // Add a new pattern
+  removePattern: (patternId: PatternId) => void; // Remove a pattern
+  renamePattern: (patternId: PatternId, name: string) => void; // Rename a pattern
+  setCurrentPattern: (patternId: PatternId) => void; // Set the current pattern
+  getActiveInstrumentSet: (instrumentId: InstrumentId) => Set<CellKey>; // Get the active set of cells for an instrument in the current pattern
+  toggleCellInActivePattern: (instrumentId: InstrumentId, row: number, col: number) => void; // Toggle a cell in the current pattern for a given instrument
 };
 
 const synthId = 'i_synth1';
@@ -26,6 +33,13 @@ const snareId = 'i_snare1';
 const hatId = 'i_hat1';
 
 function uid() { return Math.random().toString(36).slice(2, 8); }
+
+// Utility to create an empty instrument grid
+function makeEmptyInstrumentGrid(instrumentIds: InstrumentId[]): InstrumentGrid {
+  const grid: InstrumentGrid = {};
+  for (const id of instrumentIds) grid[id] = new Set<CellKey>();
+  return grid;
+}
 
 // Zustand store for project state
 export const useProjectStore = create<ProjectState>((set, get) => {
@@ -74,51 +88,15 @@ export const useProjectStore = create<ProjectState>((set, get) => {
     instruments,
     instrumentOrder: [synth.id, kick.id, snare.id, hat.id],
     selectedInstrumentId: synth.id,
+    patterns: [{ id: 'p1', name: 'Pattern 1' }],
+    currentPatternId: 'p1',
+    patternGrids: { p1: makeEmptyInstrumentGrid([synth.id, kick.id, snare.id, hat.id]) },
     selectInstrument: (id) =>
       set((s) => {
         if (s.instruments[id]) return { selectedInstrumentId: id };
         // fallback to the first valid instrument instead of adopting a bad id
         const fallback = s.instrumentOrder.find((x) => !!s.instruments[x]);
         return fallback ? { selectedInstrumentId: fallback } : s;
-      }),
-
-    toggleCell: (row, col) => {
-      set((s: ProjectState) => {
-        const inst = s.instruments[s.selectedInstrumentId];
-        if (!inst) {
-          // auto-heal selection if it's point at something that no longer exists
-          const fallback = s.instrumentOrder.find((x) => !!s.instruments[x]);
-          if (fallback && fallback !== s.selectedInstrumentId) {
-            return { selectedInstrumentId: fallback };
-          }
-          return s;
-        }
-        const key = `${row}:${col}` as CellKey;
-        const next = new Set(inst.cells);
-        next.has(key) ? next.delete(key) : next.add(key);
-
-        return {
-          instruments: {
-            ...s.instruments,
-            [inst.id]: { ...inst, cells: next },
-          },
-        };
-      });
-    },
-
-    toggleCellFor: (instrumentId: string, row: number, col: number) =>
-      set((state) => {
-        const inst = state.instruments[instrumentId];
-        if (!inst) return state;
-        const key: `${number}:${number}` = `${row}:${col}`;
-        const next = new Set(inst.cells);
-        next.has(key) ? next.delete(key) : next.add(key);
-        return {
-          instruments: {
-            ...state.instruments,
-            [instrumentId]: { ...inst, cells: next }
-          }
-        };
       }),
 
     addSynth: (name = 'Synth') => {
@@ -193,5 +171,68 @@ export const useProjectStore = create<ProjectState>((set, get) => {
         return { instruments: updated };
       })
     },
-  };
+
+    addPattern: (name) => {
+      const id = `p_${uid()}`;
+      const { instrumentOrder, patternGrids, patterns } = get();
+      set({
+        patterns: [...patterns, { id, name: name ?? `Pattern ${patterns.length + 1}` }],
+        patternGrids: { ...patternGrids, [id]: makeEmptyInstrumentGrid(instrumentOrder) },
+        currentPatternId: id,
+      })
+    },
+
+    removePattern: (patternId) => {
+      const { patterns, patternGrids, currentPatternId } = get();
+      if (patterns.length <= 1) return; // prevent removing last pattern
+      const nextPatterns = patterns.filter(p => p.id !== patternId);
+      const nextGrids = { ...patternGrids };
+      delete nextGrids[patternId];
+
+      const fallbackId =
+        currentPatternId === patternId
+          ? (nextPatterns[nextPatterns.length - 1]?.id ?? nextPatterns[0]?.id)
+          : currentPatternId;
+
+      set({ patterns: nextPatterns, patternGrids: nextGrids, currentPatternId: fallbackId });
+    },
+
+    renamePattern: (patternId, name) => {
+      set((state) => ({
+        patterns: state.patterns.map(p => p.id === patternId ? { ...p, name } : p)
+      }));
+    },
+
+    setCurrentPattern: (patternId) => {
+      set({ currentPatternId: patternId });
+    },
+
+    // Get the active set of cells for an instrument in the current pattern
+    getActiveInstrumentSet: (instrumentId: string) => {
+      const { currentPatternId, patternGrids } = get();
+      return patternGrids[currentPatternId]?.[instrumentId] ?? new Set<CellKey>();
+    },
+
+    // Toggle a cell in the current pattern for a given instrument
+    toggleCellInActivePattern: (instrumentId: string, row: number, col: number) => {
+      const key: CellKey = `${row}:${col}`;
+      const { currentPatternId, patternGrids } = get();
+      const grid = patternGrids[currentPatternId] ?? {}; // Ensure we have a grid for the current pattern
+      const current = grid[instrumentId] ?? new Set<CellKey>(); // Get current set (or empty)
+      const next = new Set(current); // Clone so the reference changes
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+
+      // Write back with new object paths so Zustand emits a change
+      set({
+        patternGrids: {
+          ...patternGrids,
+          [currentPatternId]: {
+            ...grid,
+            [instrumentId]: next,
+          },
+        },
+      });
+    },
+  }
 });

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import * as Tone from 'tone';
 import Toolbar from './toolbar';
+import PatternControls from './pattern-controls';
 import { CellKey } from '../lib/types';
 import { DEFAULT_COLS as COLS, PITCHES } from '../lib/config';
 import { ensureAudio, playMidiAt } from '../lib/audio';
@@ -18,7 +19,7 @@ export default function TransportBar() {
 
   // Advance one col and play notes in that col
   const playColumnAt = (col: number, time: number) => {
-    const { instruments, instrumentOrder } = useProjectStore.getState();
+    const { instruments, instrumentOrder, getActiveInstrumentSet } = useProjectStore.getState();
     const anySolo = instrumentOrder.some((id) => instruments[id]?.solo);
 
     // For each instrument, if a cell is active at (row, next), play it
@@ -33,7 +34,8 @@ export default function TransportBar() {
       // For each row in this instrument, if the cell at (row, next) is active, play its note
       PITCHES.forEach((midi, row) => {
         const key = `${row}:${col}` as CellKey;
-        if (!inst.cells.has(key)) return;
+        const set = getActiveInstrumentSet(id);
+        if (!set.has(key)) return;
 
         if (inst.kind === 'synth') {
           playMidiAt(midi, '16n', time, 0.9);
@@ -122,6 +124,8 @@ export default function TransportBar() {
       </label>
 
       <span className="ml-4 text-sm text-gray-600">Step: {step + 1}/{COLS}</span>
+
+      <PatternControls />
     </div>
   );
 }

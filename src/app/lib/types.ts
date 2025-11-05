@@ -22,3 +22,18 @@ export interface DrumInstrument extends BaseInstrument {
 }
 
 export type Instrument = SynthInstrument | DrumInstrument;
+
+// Patterns
+export type PatternId = string;
+export type InstrumentId = string;
+
+export interface PatternInfo {
+  id: PatternId;
+  name: string; // e.g. "Pattern 1"
+}
+
+// Note data per pattern
+export type InstrumentGrid = Record<InstrumentId, Set<CellKey>>;
+
+// Mapping of pattern IDs to their respective instrument grids
+export type PatternGrids = Record<PatternId, InstrumentGrid>;

@@ -8,10 +8,17 @@ import { ensureDrums, playKick, playSnare, playHat } from '../lib/drums';
 
 // Main grid component with piano labels and interactive note cells
 export default function Grid() {
-  const { instruments, instrumentOrder, selectedInstrumentId, selectInstrument, toggleCell } = useProjectStore();
+  const {
+    instruments,
+    instrumentOrder,
+    selectedInstrumentId,
+    selectInstrument,
+    currentPatternId,
+    patternGrids,
+    toggleCellInActivePattern
+  } = useProjectStore();
   const inst = instruments[selectedInstrumentId];
-  const cells = inst?.cells ?? new Set<CellKey>();
-
+  const cells = patternGrids[currentPatternId]?.[selectedInstrumentId] ?? new Set<CellKey>(); // Get active cells for the selected instrument
   const isBlackKey = (midi: number) => [1, 3, 6, 8, 10].includes(midi % 12); // Sets "black keys" on piano roll grid
   const midiRowId = (midi: number) => `row-m${midi}`;
 
@@ -52,14 +59,15 @@ export default function Grid() {
   // Collect all cells from other instruments for ghost note rendering
   const ghostCells = useMemo(() => {
     const set = new Set<CellKey>();
+    const grid = patternGrids[currentPatternId] ?? {};
     for (const id of instrumentOrder) {
       if (id === selectedInstrumentId) continue; // exclude current instrument
-      const inst = instruments[id];
-      if (!inst) continue;
-      for (const key of inst.cells) set.add(key); // add all other instrument cells
+      const s = grid[id];
+      if (!s) continue;
+      s.forEach(k => set.add(k));
     }
     return set;
-  }, [instruments, instrumentOrder, selectedInstrumentId]);
+  }, [patternGrids, currentPatternId, instrumentOrder, selectedInstrumentId]);
 
   // Preview sound for a given row
   const preview = async (row: number) => {
@@ -87,7 +95,7 @@ export default function Grid() {
     // Preview sound
     await preview(row);
     // Toggle UI state
-    toggleCell(row, col);
+    toggleCellInActivePattern(selectedInstrumentId, row, col);
   }
 
   return (

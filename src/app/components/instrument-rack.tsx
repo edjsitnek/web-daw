@@ -9,10 +9,12 @@ export default function InstrumentRack() {
     instruments,
     instrumentOrder,
     selectedInstrumentId,
+    currentPatternId,
+    patternGrids,
     selectInstrument,
-    toggleCellFor,
     toggleMute,
     toggleSolo,
+    toggleCellInActivePattern
   } = useProjectStore();
 
   return (
@@ -65,8 +67,9 @@ export default function InstrumentRack() {
             {/* Right: 16 step buttons bound to C4 row */}
             <div className="flex items-center gap-1">
               {Array.from({ length: DEFAULT_COLS }).map((_, col) => {
+                const set = patternGrids[currentPatternId]?.[id] ?? new Set();
                 const key: `${number}:${number}` = `${RACK_ROW}:${col}`;
-                const isOn = inst.cells.has(key);
+                const isOn = set.has(key);
 
                 // Alternate tint every group of 4 steps
                 const barIndex = Math.floor(col / 4);
@@ -77,7 +80,7 @@ export default function InstrumentRack() {
                     key={col}
                     onClick={(e) => {
                       e.stopPropagation(); // don’t accidentally trigger select
-                      toggleCellFor(id, RACK_ROW, col); // target this instrument
+                      toggleCellInActivePattern(id, RACK_ROW, col); // target this instrument
                     }}
                     aria-pressed={isOn}
                     className={[
