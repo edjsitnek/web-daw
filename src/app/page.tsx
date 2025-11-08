@@ -1,9 +1,12 @@
 'use client';
-import Grid from './components/grid';
+import PatternGrid from './components/pattern-grid';
+import SongGrid from './components/song-grid';
 import TransportBar from './components/transport-bar';
 import InstrumentRack from './components/instrument-rack';
+import { useProjectStore } from './store/project';
 
 export default function Home() {
+  const { viewMode } = useProjectStore();
 
   return (
     <div className="p-2">
@@ -11,7 +14,12 @@ export default function Home() {
       <TransportBar />
       <div className="flex">
         <InstrumentRack />
-        <Grid />
+        <div className="col-auto">
+          <PatternGrid />
+          {viewMode === 'song' ? (
+            <div className="mt-3"><SongGrid /></div>
+          ) : null}
+        </div>
       </div>
 
     </div>

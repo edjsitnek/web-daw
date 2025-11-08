@@ -7,7 +7,7 @@ import { useProjectStore } from '../store/project';
 import { ensureDrums, playKick, playSnare, playHat } from '../lib/drums';
 
 // Main grid component with piano labels and interactive note cells
-export default function Grid() {
+export default function PatternGrid() {
   const {
     instruments,
     instrumentOrder,

@@ -1,7 +1,7 @@
 'use client';
 console.log('project store loaded');
 import { create } from 'zustand';
-import type { Instrument, SynthInstrument, DrumInstrument, DrumVoice, CellKey, PatternId, PatternInfo, InstrumentId, InstrumentGrid, PatternGrids } from '../lib/types';
+import type { Instrument, SynthInstrument, DrumInstrument, DrumVoice, CellKey, PatternId, PatternInfo, InstrumentId, InstrumentGrid, PatternGrids, ViewMode, PlayMode, SongGrid } from '../lib/types';
 
 // Define the shape of the project state
 type ProjectState = {
@@ -11,6 +11,10 @@ type ProjectState = {
   patterns: PatternInfo[]; // List of patterns
   currentPatternId: PatternId; // Currently active pattern
   patternGrids: PatternGrids; // Note data per pattern
+  viewMode: ViewMode; // Current view mode (pattern or song)
+  songBlocks: number, // Number of blocks in the song view
+  songGrid: SongGrid; // Song grid data
+  playMode: PlayMode; // Current play mode (pattern or song)
 
   // Actions
   selectInstrument: (id: string) => void; // Select instrument by id
@@ -25,6 +29,10 @@ type ProjectState = {
   setCurrentPattern: (patternId: PatternId) => void; // Set the current pattern
   getActiveInstrumentSet: (instrumentId: InstrumentId) => Set<CellKey>; // Get the active set of cells for an instrument in the current pattern
   toggleCellInActivePattern: (instrumentId: InstrumentId, row: number, col: number) => void; // Toggle a cell in the current pattern for a given instrument
+  setViewMode: (mode: ViewMode) => void; // Set the current view mode
+  setSongBlocks: (n: number) => void; // Set number of song blocks
+  toggleSongCell: (patternId: PatternId, blockIndex: number) => void; // Toggle a cell in the song grid
+  setPlayMode: (mode: PlayMode) => void; // Set the current play mode
 };
 
 const synthId = 'i_synth1';
@@ -91,6 +99,11 @@ export const useProjectStore = create<ProjectState>((set, get) => {
     patterns: [{ id: 'p1', name: 'Pattern 1' }],
     currentPatternId: 'p1',
     patternGrids: { p1: makeEmptyInstrumentGrid([synth.id, kick.id, snare.id, hat.id]) },
+    viewMode: 'pattern',
+    songBlocks: 32,
+    songGrid: {},
+    playMode: 'pattern',
+
     selectInstrument: (id) =>
       set((s) => {
         if (s.instruments[id]) return { selectedInstrumentId: id };
@@ -183,18 +196,24 @@ export const useProjectStore = create<ProjectState>((set, get) => {
     },
 
     removePattern: (patternId) => {
-      const { patterns, patternGrids, currentPatternId } = get();
+      const { patterns, patternGrids, currentPatternId, songGrid } = get();
       if (patterns.length <= 1) return; // prevent removing last pattern
+
       const nextPatterns = patterns.filter(p => p.id !== patternId);
-      const nextGrids = { ...patternGrids };
-      delete nextGrids[patternId];
+      const nextGrids = { ...patternGrids }; delete nextGrids[patternId];
+      const nextSongGrid = { ...songGrid }; delete nextSongGrid[patternId];
 
       const fallbackId =
         currentPatternId === patternId
           ? (nextPatterns[nextPatterns.length - 1]?.id ?? nextPatterns[0]?.id)
           : currentPatternId;
 
-      set({ patterns: nextPatterns, patternGrids: nextGrids, currentPatternId: fallbackId });
+      set({
+        patterns: nextPatterns,
+        patternGrids: nextGrids,
+        songGrid: nextSongGrid,
+        currentPatternId: fallbackId
+      });
     },
 
     renamePattern: (patternId, name) => {
@@ -234,5 +253,29 @@ export const useProjectStore = create<ProjectState>((set, get) => {
         },
       });
     },
+
+    // Set the current view mode
+    setViewMode: (mode: ViewMode) => set({ viewMode: mode }),
+
+    // Set number of song blocks
+    setSongBlocks: (n: number) => set({ songBlocks: Math.max(1, Math.floor(n)) }),
+
+    // Toggle a cell in the song grid
+    toggleSongCell: (patternId: PatternId, block: number) => {
+      const { songGrid } = get();
+      const row = songGrid[patternId] ?? new Set<number>();
+      const next = new Set(row);
+      if (next.has(block)) next.delete(block); else next.add(block);
+
+      set({
+        songGrid: {
+          ...songGrid,
+          [patternId]: next,
+        },
+      });
+    },
+
+    // Set the current play mode
+    setPlayMode: (mode: PlayMode) => set({ playMode: mode }),
   }
 });

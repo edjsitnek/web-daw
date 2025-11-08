@@ -37,3 +37,9 @@ export type InstrumentGrid = Record<InstrumentId, Set<CellKey>>;
 
 // Mapping of pattern IDs to their respective instrument grids
 export type PatternGrids = Record<PatternId, InstrumentGrid>;
+
+export type ViewMode = 'pattern' | 'song';
+export type PlayMode = 'pattern' | 'song';
+
+// One row per pattern; each Set<number> holds which block indices have clips
+export type SongGrid = Record<PatternId, Set<number>>;
