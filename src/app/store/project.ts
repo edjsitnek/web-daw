@@ -15,6 +15,7 @@ type ProjectState = {
   songBlocks: number, // Number of blocks in the song view
   songGrid: SongGrid; // Song grid data
   playMode: PlayMode; // Current play mode (pattern or song)
+  projectName: string; // Name of the project
 
   // Actions
   selectInstrument: (id: string) => void; // Select instrument by id
@@ -33,6 +34,7 @@ type ProjectState = {
   setSongBlocks: (n: number) => void; // Set number of song blocks
   toggleSongCell: (patternId: PatternId, blockIndex: number) => void; // Toggle a cell in the song grid
   setPlayMode: (mode: PlayMode) => void; // Set the current play mode
+  setProjectName: (name: string) => void; // Set the project name
 };
 
 const synthId = 'i_synth1';
@@ -103,6 +105,7 @@ export const useProjectStore = create<ProjectState>((set, get) => {
     songBlocks: 32,
     songGrid: {},
     playMode: 'pattern',
+    projectName: 'Untitled Project',
 
     selectInstrument: (id) =>
       set((s) => {
@@ -277,5 +280,8 @@ export const useProjectStore = create<ProjectState>((set, get) => {
 
     // Set the current play mode
     setPlayMode: (mode: PlayMode) => set({ playMode: mode }),
+
+    // Set the project name
+    setProjectName: (name: string) => set({ projectName: name }),
   }
 });

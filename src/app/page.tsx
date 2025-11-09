@@ -6,11 +6,11 @@ import InstrumentRack from './components/instrument-rack';
 import { useProjectStore } from './store/project';
 
 export default function Home() {
-  const { viewMode } = useProjectStore();
+  const { projectName, viewMode } = useProjectStore();
 
   return (
     <div className="p-2">
-      <h1>Web Daw</h1>
+      <h1>{projectName}</h1>
       <TransportBar />
       <div className="flex">
         <InstrumentRack />
@@ -21,7 +21,6 @@ export default function Home() {
           ) : null}
         </div>
       </div>
-
     </div>
   );
 }
