@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useProjectStore } from '../store/project';
+import { useProjectStore } from '../../../store/project';
 
 // Component to display and edit the project title
 export default function ProjectTitle() {

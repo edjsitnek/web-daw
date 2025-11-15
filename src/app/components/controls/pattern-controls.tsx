@@ -1,8 +1,9 @@
 'use client';
 
 import { useCallback, useMemo } from 'react';
-import { useProjectStore } from '../store/project';
+import { useProjectStore } from '../../store/project';
 
+// Pattern controls component to select, add, remove, and rename patterns
 export default function PatternControls() {
   const {
     patterns,
@@ -57,7 +58,7 @@ export default function PatternControls() {
       </select>
 
       <button
-        className="text-white bg-gray-700 hover:bg-gray-800 rounded-lg px-2 py-1"
+        className="text-white text-sm bg-gray-700 hover:bg-gray-800 rounded-lg px-2 py-1"
         onClick={onAdd}
         aria-label="Add pattern"
         title="Add pattern"
@@ -66,7 +67,7 @@ export default function PatternControls() {
       </button>
 
       <button
-        className="text-white bg-gray-700 hover:bg-gray-800 rounded-lg px-2 py-1 disabled:opacity-50"
+        className="text-white text-sm bg-gray-700 hover:bg-gray-800 rounded-lg px-2 py-1 disabled:opacity-50"
         onClick={onRemove}
         disabled={!canRemove}
         aria-label="Delete current pattern"
@@ -76,7 +77,7 @@ export default function PatternControls() {
       </button>
 
       <button
-        className="text-white bg-gray-700 hover:bg-gray-800 rounded-lg px-2 py-1"
+        className="text-white text-sm bg-gray-700 hover:bg-gray-800 rounded-lg px-2 py-1"
         onClick={onRename}
         aria-label="Rename current pattern"
         title="Rename current pattern"

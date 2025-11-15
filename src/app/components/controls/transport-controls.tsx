@@ -10,7 +10,7 @@ export interface ToolbarProps {
 }
 
 // Toolbar component with play, pause, and stop buttons
-export default function Toolbar({ isPlaying, onPlay, onPause, onStop }: ToolbarProps) {
+export default function TransportControls({ isPlaying, onPlay, onPause, onStop }: ToolbarProps) {
   return (
     <div className="flex gap-1">
       {!isPlaying ? (

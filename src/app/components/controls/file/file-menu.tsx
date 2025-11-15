@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { saveProjectToDisk, loadProjectFromDisk } from '../lib/io';
-import { useProjectStore } from '../store/project';
+import { saveProjectToDisk, loadProjectFromDisk } from '../../../lib/io';
+import { useProjectStore } from '../../../store/project';
 
 // File menu component with New, Open, and Save options
 export default function FileMenu() {

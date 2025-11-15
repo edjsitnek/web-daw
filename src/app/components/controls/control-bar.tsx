@@ -2,17 +2,17 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import * as Tone from 'tone';
-import Toolbar from './toolbar';
+import TransportControls from './transport-controls';
 import PatternControls from './pattern-controls';
-import { CellKey, PatternId } from '../lib/types';
-import { DEFAULT_COLS as COLS, DEFAULT_ROWS, PITCHES } from '../lib/config';
-import { ensureAudio, playMidiAt } from '../lib/audio';
-import { ensureDrums, playKick, playSnare, playHat } from '../lib/drums';
-import { useProjectStore } from '../store/project';
-import { useTransportStore } from '../store/transport';
+import { CellKey, PatternId } from '../../lib/types';
+import { DEFAULT_COLS as COLS, DEFAULT_ROWS, PITCHES } from '../../lib/config';
+import { ensureAudio, playMidiAt } from '../../lib/audio';
+import { ensureDrums, playKick, playSnare, playHat } from '../../lib/drums';
+import { useProjectStore } from '../../store/project';
+import { useTransportStore } from '../../store/transport';
 
-// Transport bar with play, pause, stop functionality, BPM input, and current step display
-export default function TransportBar() {
+// Control bar component with transport controls, BPM, pattern/song mode, and pattern controls
+export default function ControlBar() {
   const { bpm, step, isPlaying, setBpm, setStep, setIsPlaying } = useTransportStore();
   const { viewMode, playMode, songBlocks, setViewMode, setPlayMode } = useProjectStore.getState();
   const repeatIdRef = useRef<number | undefined>(undefined); // Keep the schedule id stable between renders
@@ -192,14 +192,14 @@ export default function TransportBar() {
         </button>
       </div>
 
-      <Toolbar
+      <TransportControls
         isPlaying={isPlaying}
         onPlay={handlePlay}
         onPause={handlePause}
         onStop={handleStop}
       />
 
-      <label className="ml-4 text-sm">
+      <label className="text-sm">
         BPM&nbsp;
         <input
           type="number"
@@ -212,9 +212,9 @@ export default function TransportBar() {
       </label>
 
       {playMode === 'pattern' ? (
-        <span className="ml-4 text-sm text-gray-600">Step: {step + 1}/{COLS}</span>
+        <span className="text-sm text-gray-600">Step: {step + 1}/{COLS}</span>
       ) : (
-        <span className="ml-4 text-sm text-gray-600">Step: {step + 1}/{getSongTotalCols()}</span>
+        <span className="text-sm text-gray-600">Step: {step + 1}/{getSongTotalCols()}</span>
       )}
 
       < PatternControls />

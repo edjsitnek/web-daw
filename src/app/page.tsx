@@ -1,10 +1,10 @@
 'use client';
 import PatternGrid from './components/pattern-grid';
 import SongGrid from './components/song-grid';
-import TransportBar from './components/transport-bar';
+import ControlBar from './components/controls/control-bar';
 import InstrumentRack from './components/instrument-rack';
-import ProjectTitle from './components/project-title';
-import FileMenu from './components/file-menu';
+import ProjectTitle from './components/controls/file/project-title';
+import FileMenu from './components/controls/file/file-menu';
 import { useProjectStore } from './store/project';
 
 export default function Home() {
@@ -16,8 +16,7 @@ export default function Home() {
         <FileMenu />
         <ProjectTitle />
       </div>
-
-      <TransportBar />
+      <ControlBar />
       <div className="flex">
         <InstrumentRack />
         <div className="col-auto">
