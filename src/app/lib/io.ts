@@ -14,6 +14,7 @@ type SaveFileV1 = {
   bpm: number;
 };
 
+// Export the current project state to a SaveFileV1 object
 export function exportProject(): SaveFileV1 {
   const p = useProjectStore.getState();
   const t = useTransportStore.getState();
@@ -61,6 +62,7 @@ export function exportProject(): SaveFileV1 {
   };
 }
 
+// Import project state from a SaveFileV1 object
 export function importProject(data: unknown) {
   const s = data as Partial<SaveFileV1>;
   if (s.version !== 1) throw new Error('Unsupported save file version');
@@ -106,12 +108,14 @@ export function importProject(data: unknown) {
   }
 }
 
+// Generate a default file name for saving the project
 function defaultFileName(): string {
   const { projectName } = useProjectStore.getState();
   const safeName = (projectName || 'Untitled Project').replace(/[\\/:*?"<>|]+/g, '_');
   return `${safeName}.json`;
 }
 
+// Save the current project state to disk
 export async function saveProjectToDisk(): Promise<void> {
   try {
     const data = exportProject();
@@ -133,7 +137,6 @@ export async function saveProjectToDisk(): Promise<void> {
     }
 
     // Fallback: download attribute (suggest name, no location choice)
-    // Fallback
     const url = URL.createObjectURL(blob);
     try {
       const a = document.createElement('a');
@@ -150,6 +153,7 @@ export async function saveProjectToDisk(): Promise<void> {
   }
 }
 
+// Load a project state from disk
 export async function loadProjectFromDisk(): Promise<void> {
   try {
     // File System Access API open picker if available
@@ -163,11 +167,6 @@ export async function loadProjectFromDisk(): Promise<void> {
       const file = await fileHandle.getFile();
       const text = await file.text();
       importProject(JSON.parse(text));
-      // Use file name to set projectName if absent
-      const base = file.name.replace(/\.json$/i, 'Untitled Project');
-      if (!useProjectStore.getState().projectName) {
-        useProjectStore.getState().setProjectName?.(base);
-      }
       return;
     }
 

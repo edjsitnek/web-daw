@@ -35,6 +35,7 @@ type ProjectState = {
   toggleSongCell: (patternId: PatternId, blockIndex: number) => void; // Toggle a cell in the song grid
   setPlayMode: (mode: PlayMode) => void; // Set the current play mode
   setProjectName: (name: string) => void; // Set the project name
+  resetProject: () => void; // Reset the project to initial state
 };
 
 const synthId = 'i_synth1';
@@ -283,5 +284,27 @@ export const useProjectStore = create<ProjectState>((set, get) => {
 
     // Set the project name
     setProjectName: (name: string) => set({ projectName: name }),
+
+    // Reset the project to initial state
+    resetProject: () => set(state => {
+      // preserve instruments and order; wipe note data/arrangement
+      const instrumentIds = state.instrumentOrder;
+      const emptyGridFor = (ids: string[]) => {
+        const g: Record<string, Set<CellKey>> = {};
+        for (const id of ids) g[id] = new Set<CellKey>();
+        return g;
+      };
+
+      const firstPatternId = 'p1';
+      return {
+        ...state,
+        projectName: 'Untitled Project',
+        patterns: [{ id: firstPatternId, name: 'Pattern 1' }],
+        currentPatternId: firstPatternId,
+        patternGrids: { [firstPatternId]: emptyGridFor(instrumentIds) },
+        songGrid: {},
+        viewMode: 'pattern',
+      };
+    }),
   }
 });

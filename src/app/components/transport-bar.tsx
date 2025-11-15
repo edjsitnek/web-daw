@@ -10,7 +10,6 @@ import { ensureAudio, playMidiAt } from '../lib/audio';
 import { ensureDrums, playKick, playSnare, playHat } from '../lib/drums';
 import { useProjectStore } from '../store/project';
 import { useTransportStore } from '../store/transport';
-import { saveProjectToDisk, loadProjectFromDisk } from '../lib/io';
 
 // Transport bar with play, pause, stop functionality, BPM input, and current step display
 export default function TransportBar() {
@@ -167,18 +166,6 @@ export default function TransportBar() {
 
   return (
     <div className="flex items-center gap-3 mb-3">
-      <button
-        className="px-2 py-1 rounded bg-gray-700 hover:bg-gray-800 text-white"
-        onClick={() => saveProjectToDisk()}
-      >
-        Save
-      </button>
-      <button
-        className="px-2 py-1 rounded bg-gray-700 hover:bg-gray-800 text-white"
-        onClick={() => loadProjectFromDisk()}
-      >
-        Load
-      </button>
       {/* Play mode buttons */}
       <div className="flex flex-col">
         <button

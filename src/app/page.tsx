@@ -3,6 +3,8 @@ import PatternGrid from './components/pattern-grid';
 import SongGrid from './components/song-grid';
 import TransportBar from './components/transport-bar';
 import InstrumentRack from './components/instrument-rack';
+import ProjectTitle from './components/project-title';
+import FileMenu from './components/file-menu';
 import { useProjectStore } from './store/project';
 
 export default function Home() {
@@ -10,7 +12,11 @@ export default function Home() {
 
   return (
     <div className="p-2">
-      <h1>{projectName}</h1>
+      <div className="flex">
+        <FileMenu />
+        <ProjectTitle />
+      </div>
+
       <TransportBar />
       <div className="flex">
         <InstrumentRack />
